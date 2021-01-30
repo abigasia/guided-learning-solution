@@ -47,6 +47,10 @@ describe('Player', function () {
         jest.spyOn(window.jQuery, "getJSON").mockImplementation((url, callback) => callback(mockGuidedLearningData));
     })
 
+    afterEach(()=>{
+        jest.clearAllMocks();
+    })
+
     it('should add script tag with Jquery', function () {
         require("../src/player");
 
@@ -55,9 +59,22 @@ describe('Player', function () {
     });
 
     it('should call getJSON to get guided learning data', function () {
-        require("../src/player");
-
+        const { getSteps } = require("../src/player");
+        getSteps();
         expect(window.jQuery.getJSON).toBeCalledTimes(1);
         expect(window.jQuery.getJSON).toHaveBeenCalledWith('https://guidedlearning.oracle.com/player/latest/api/scenario/get/v_IlPvRLRWObwLnV5sTOaw/5szm2kaj/?callback=?', expect.anything());
+    });
+
+    it('should add tooltip stylesheet', function () {
+        document.body.innerHTML = "";
+        document.head.innerHTML = "";
+        const { getSteps } = require("../src/player");
+        getSteps();
+        expect(document.head.innerHTML)
+            .toBe('<link rel=\"stylesheet\" href=\"https://guidedlearning.oracle.com/player/latest/static/css/stTip.css\">');
+        expect(document.body.innerHTML).toBe('<style>testCss</style><div class="sttip">' +
+            ' <div class="tooltip in"> <div class="tooltip-arrow"></div>' +
+            '<div class="tooltip-arrow second-arrow"></div>' +
+            '<div class="popover-inner">testTip</div></div></div>')
     });
 });

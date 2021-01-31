@@ -158,7 +158,5 @@ describe('Player', function () {
         expect(document.querySelector(".sttip").style.position).toBe('absolute');
         expect(document.querySelector(".sttip").style.top).toBe('100px');
         expect(document.querySelector(".sttip").style.left).toBe('100px');
-
     });
-
 });

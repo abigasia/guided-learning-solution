@@ -1,4 +1,5 @@
 const {describe, it} = require("@jest/globals");
+import playersRewire from '../src/player.js';
 
 describe('Player', function () {
     const mockGuidedLearningData = {
@@ -61,14 +62,14 @@ describe('Player', function () {
     });
 
     it('should call getJSON to get guided learning data', function () {
-        const { getSteps, steps } = require("../src/player");
+        const getSteps = playersRewire.__get__('getSteps');
         getSteps();
         expect(window.jQuery.getJSON).toBeCalledTimes(1);
         expect(window.jQuery.getJSON).toHaveBeenCalledWith('https://guidedlearning.oracle.com/player/latest/api/scenario/get/v_IlPvRLRWObwLnV5sTOaw/5szm2kaj/?callback=?', expect.anything());
     });
 
     it('should add tooltip & its stylesheet', function () {
-        const { getSteps } = require("../src/player");
+        const getSteps = playersRewire.__get__('getSteps');
         getSteps();
         expect(document.head.innerHTML)
             .toBe('<link rel=\"stylesheet\" href=\"https://guidedlearning.oracle.com/player/latest/static/css/stTip.css\"><style>testCss</style>');
@@ -91,7 +92,7 @@ describe('Player', function () {
                 }
             }
         }));
-        const { getSteps } = require("../src/player");
+        const getSteps = playersRewire.__get__('getSteps');
         getSteps();
         expect(document.head.innerHTML)
             .toBe('');
@@ -99,7 +100,7 @@ describe('Player', function () {
     });
 
     it('should add content to tooltip', function () {
-        const { getSteps } = require("../src/player");
+        const getSteps = playersRewire.__get__('getSteps');
         document.body.innerHTML =
             '<div data-iridize-id="content"></div>';
         getSteps();
@@ -135,7 +136,7 @@ describe('Player', function () {
             }
         }));
 
-        const { getSteps } = require("../src/player");
+        const getSteps = playersRewire.__get__('getSteps');
         document.body.innerHTML =
             '<div data-iridize-id="content"></div>';
         getSteps();
@@ -144,10 +145,11 @@ describe('Player', function () {
     });
 
     it('should position tooltip on basis of selector and placement', function () {
-        const { getSteps } = require("../src/player");
-
+        const getSteps = playersRewire.__get__('getSteps');
         document.body.innerHTML = "<div id='hplogo'></div>";
-
+        (window.jQuery)(document.body)[0].getBoundingClientRect = () => ({
+            bottom: 300, right: 400
+        });
         const getBoundingClientRectSpy = jest.fn(() => ({ top: 100, right: 100 }));
         global.document.getElementById = jest.fn(() => ({
             getBoundingClientRect: getBoundingClientRectSpy  // <= add getBoundingClientRect
@@ -158,5 +160,32 @@ describe('Player', function () {
         expect(document.querySelector(".sttip").style.position).toBe('absolute');
         expect(document.querySelector(".sttip").style.top).toBe('100px');
         expect(document.querySelector(".sttip").style.left).toBe('100px');
+    });
+
+    it('should return valid tooltip position if tooltip lies in DOM', () => {
+        (window.jQuery)(document.body)[0].getBoundingClientRect = () => ({
+            bottom: 300, right: 300
+        });
+        const getTooltipPosition = playersRewire.__get__('getTooltipPosition');
+
+        expect(getTooltipPosition(10,10,{})).toStrictEqual({"left": 10, "top": 10});
+    });
+
+    it('should return valid left tooltip position if tooltip lies outside DOM', () => {
+        (window.jQuery)(document.body)[0].getBoundingClientRect = () => ({
+            bottom: 300, right: 200
+        });
+        const getTooltipPosition = playersRewire.__get__('getTooltipPosition');
+
+        expect(getTooltipPosition(10,10,{left:302,top:20})).toStrictEqual({"left": 20, "top": 10});
+    });
+
+    it('should return valid top tooltip position if tooltip lies outside DOM', () => {
+        (window.jQuery)(document.body)[0].getBoundingClientRect = () => ({
+            bottom: 100, right: 300
+        });
+        const getTooltipPosition = playersRewire.__get__('getTooltipPosition');
+
+        expect(getTooltipPosition(10,10,{left:10,top:150})).toStrictEqual({"left": 10, "top": 33});
     });
 });

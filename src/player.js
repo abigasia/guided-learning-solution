@@ -11,6 +11,9 @@ const Placement = {
     LEFT: 'left'
 }
 
+const TOOLTIP_WIDTH = 282;
+const TOOLTIP_HEIGHT = 117;
+
 let steps;
 let currStepIndex = 0;
 
@@ -36,10 +39,21 @@ function addToolTip(tooltipCss, tip) {
     addTooltipContent();
 }
 
-function addActionsToTooltip(){
+function addActionsToTooltip() {
     (window.jQuery)("a[data-iridize-role='nextBt']").click(nextClick);
     (window.jQuery)("button[data-iridize-role='closeBt']").click(closeTooltip);
     (window.jQuery)("button[data-iridize-role='prevBt']").click(backClick);
+}
+
+function getTooltipPosition(top, left, selectorPositions) {
+    const bodyPosition = (window.jQuery)(document.body)[0].getBoundingClientRect();
+    if (left + TOOLTIP_WIDTH > bodyPosition.right) {
+        left = selectorPositions.left - TOOLTIP_WIDTH;
+    }
+    if (top + TOOLTIP_HEIGHT > bodyPosition.bottom) {
+        top = selectorPositions.top - TOOLTIP_HEIGHT;
+    }
+    return {top: top, left: left}
 }
 
 function setTooltipPlacement() {
@@ -55,21 +69,21 @@ function setTooltipPlacement() {
         return;
     }
     const selectorPositions = (window.jQuery)(selector)[0].getBoundingClientRect();
-    let topPosition, leftPosition;
+    let tooltipPosition;
     switch (action.placement) {
         case Placement.RIGHT: {
-            topPosition = selectorPositions.top;
-            leftPosition = selectorPositions.right;
+            tooltipPosition = getTooltipPosition(selectorPositions.top, selectorPositions.right, selectorPositions);
             break;
         }
         case Placement.BOTTOM: {
-            topPosition = selectorPositions.bottom;
-            leftPosition = (selectorPositions.right + selectorPositions.left) / 2;
+            tooltipPosition = getTooltipPosition(selectorPositions.bottom,
+                (selectorPositions.right + selectorPositions.left) / 2,
+                selectorPositions);
             break;
         }
     }
 
-    (window.jQuery)('.sttip').css({position: 'absolute', top: topPosition, left: leftPosition});
+    (window.jQuery)('.sttip').css({position: 'absolute', ...tooltipPosition});
 }
 
 function nextClick() {
@@ -79,7 +93,7 @@ function nextClick() {
     if (currStepIndex > 0) {
         (window.jQuery)("button[data-iridize-role='prevBt']").removeClass('default-prev-btn');
     }
-    if (currStepIndex === steps.length-1) {
+    if (currStepIndex === steps.length - 1) {
         (window.jQuery)("a[data-iridize-role='nextBt']").css({display: 'none'})
     }
 }
@@ -93,7 +107,7 @@ function backClick() {
     if (currStepIndex === 0) {
         (window.jQuery)("button[data-iridize-role='prevBt']").addClass('default-prev-btn');
     }
-    if (currStepIndex < steps.length-1) {
+    if (currStepIndex < steps.length - 1) {
         (window.jQuery)("a[data-iridize-role='nextBt']").css({display: 'block'})
     }
     addTooltipContent();
@@ -132,7 +146,3 @@ function getSteps() {
     document.head.appendChild(scriptTag);
     scriptTag.onload = getSteps;
 })()
-
-module.exports = {
-    getSteps
-}

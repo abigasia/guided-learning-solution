@@ -4,6 +4,13 @@ const ActionType = {
     CLOSESCENARIO: 'closeScenario'
 };
 
+const Placement = {
+    RIGHT: 'right',
+    BOTTOM: 'bottom',
+    TOP: 'top',
+    LEFT: 'left'
+}
+
 let steps;
 let currStepIndex = 0;
 
@@ -13,7 +20,7 @@ function addToolTip(tooltipCss, tip) {
     styleTag.href = 'https://guidedlearning.oracle.com/player/latest/static/css/stTip.css';
     document.head.appendChild(styleTag);
 
-    (window.jQuery)(document.body).append("<style>" + tooltipCss + "</style>");
+    (window.jQuery)(document.head).append("<style>" + tooltipCss + "</style>");
     (window.jQuery)(document.body).append("<div  class='sttip'> " +
         "<div class='tooltip in'> " +
         "<div class='tooltip-arrow'></div>" +
@@ -25,22 +32,38 @@ function addToolTip(tooltipCss, tip) {
         "</div>");
 
     addTooltipContent();
+
+}
+
+function setTooltipPlacement(){
+    const action = steps[currStepIndex].action;
+    const selector = action.selector
+    if(!selector || !(window.jQuery)(selector)[0])
+        return;
+    const selectorPositions = (window.jQuery)(selector)[0].getBoundingClientRect();
+    let topPosition, leftPosition;
+    switch(action.placement){
+        case Placement.RIGHT: {topPosition=  selectorPositions.top; leftPosition=  selectorPositions.right; break; }
+        case Placement.BOTTOM: {topPosition = selectorPositions.bottom; leftPosition=  (selectorPositions.right+selectorPositions.left)/2; break; }
+    }
+
+    (window.jQuery)('.sttip').css({position: 'absolute', top: topPosition, left: leftPosition});
 }
 
 function addTooltipContent(){
-    let action = steps[currStepIndex].action;
+    const action = steps[currStepIndex].action;
     let content;
     if (action.type === ActionType.TIP) {
         content = action.contents["#content"];
     } else {
         content = '<p>You have completed guided learning. Happy Browsing !!</p>';
     }
-
+    setTooltipPlacement();
     (window.jQuery)("div[data-iridize-id='content']").html(content);
 }
 
 function getSteps() {
-    window.jQuery.getJSON(
+    (window.jQuery).getJSON(
         GUIDED_LEARNING_DATA_URL,
         (json) => {
             let guidedLearningData = json.data;

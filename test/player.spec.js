@@ -71,8 +71,8 @@ describe('Player', function () {
         const { getSteps } = require("../src/player");
         getSteps();
         expect(document.head.innerHTML)
-            .toBe('<link rel=\"stylesheet\" href=\"https://guidedlearning.oracle.com/player/latest/static/css/stTip.css\">');
-        expect(document.body.innerHTML).toBe('<style>testCss</style><div class="sttip">' +
+            .toBe('<link rel=\"stylesheet\" href=\"https://guidedlearning.oracle.com/player/latest/static/css/stTip.css\"><style>testCss</style>');
+        expect(document.body.innerHTML).toBe('<div class="sttip">' +
             ' <div class="tooltip in"> <div class="tooltip-arrow"></div>' +
             '<div class="tooltip-arrow second-arrow"></div>' +
             '<div class="popover-inner">testTip</div></div></div>')
@@ -142,4 +142,23 @@ describe('Player', function () {
 
         expect((window.jQuery)("div[data-iridize-id='content']").text()).toEqual('You have completed guided learning. Happy Browsing !!');
     });
+
+    it('should position tooltip on basis of selector and placement', function () {
+        const { getSteps } = require("../src/player");
+
+        document.body.innerHTML = "<div id='hplogo'></div>";
+
+        const getBoundingClientRectSpy = jest.fn(() => ({ top: 100, right: 100 }));
+        global.document.getElementById = jest.fn(() => ({
+            getBoundingClientRect: getBoundingClientRectSpy  // <= add getBoundingClientRect
+        }));
+
+        getSteps();
+
+        expect(document.querySelector(".sttip").style.position).toBe('absolute');
+        expect(document.querySelector(".sttip").style.top).toBe('100px');
+        expect(document.querySelector(".sttip").style.left).toBe('100px');
+
+    });
+
 });

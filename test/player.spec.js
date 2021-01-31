@@ -72,7 +72,7 @@ describe('Player', function () {
         getSteps();
         expect(document.head.innerHTML)
             .toBe('<link rel=\"stylesheet\" href=\"https://guidedlearning.oracle.com/player/latest/static/css/stTip.css\"><style>testCss</style>');
-        expect(document.body.innerHTML).toBe('<div class="sttip">' +
+        expect(document.body.innerHTML).toBe('<div class="sttip" style="position: absolute; top: 0px; left: 0px;">' +
             ' <div class="tooltip in"> <div class="tooltip-arrow"></div>' +
             '<div class="tooltip-arrow second-arrow"></div>' +
             '<div class="popover-inner">testTip</div></div></div>')

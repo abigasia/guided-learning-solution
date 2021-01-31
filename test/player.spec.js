@@ -49,6 +49,8 @@ describe('Player', function () {
 
     afterEach(()=>{
         jest.clearAllMocks();
+        document.body.innerHTML = "";
+        document.head.innerHTML = "";
     })
 
     it('should add script tag with Jquery', function () {
@@ -59,15 +61,13 @@ describe('Player', function () {
     });
 
     it('should call getJSON to get guided learning data', function () {
-        const { getSteps } = require("../src/player");
+        const { getSteps, steps } = require("../src/player");
         getSteps();
         expect(window.jQuery.getJSON).toBeCalledTimes(1);
         expect(window.jQuery.getJSON).toHaveBeenCalledWith('https://guidedlearning.oracle.com/player/latest/api/scenario/get/v_IlPvRLRWObwLnV5sTOaw/5szm2kaj/?callback=?', expect.anything());
     });
 
-    it('should add tooltip stylesheet', function () {
-        document.body.innerHTML = "";
-        document.head.innerHTML = "";
+    it('should add tooltip & its stylesheet', function () {
         const { getSteps } = require("../src/player");
         getSteps();
         expect(document.head.innerHTML)
@@ -76,5 +76,70 @@ describe('Player', function () {
             ' <div class="tooltip in"> <div class="tooltip-arrow"></div>' +
             '<div class="tooltip-arrow second-arrow"></div>' +
             '<div class="popover-inner">testTip</div></div></div>')
+    });
+
+    it('should not add tooltip & its stylesheet oif no steps found', function () {
+        jest.spyOn(window.jQuery, "getJSON").mockImplementation((url, callback) => callback({
+            data: {
+                css: 'testCss',
+                structure: {
+                    steps: null
+                },
+                tiplates: {
+                    tip: 'testTip',
+                    hoverTip: 'testHoverTip'
+                }
+            }
+        }));
+        const { getSteps } = require("../src/player");
+        getSteps();
+        expect(document.head.innerHTML)
+            .toBe('');
+        expect(document.body.innerHTML).toBe('')
+    });
+
+    it('should add content to tooltip', function () {
+        const { getSteps } = require("../src/player");
+        document.body.innerHTML =
+            '<div data-iridize-id="content"></div>';
+        getSteps();
+
+        expect((window.jQuery)("div[data-iridize-id='content']").text()).toEqual('Welcome to Google!\n');
+    });
+
+    it('should add ending message content to tooltip if action type is closeScenario', function () {
+        jest.spyOn(window.jQuery, "getJSON").mockImplementation((url, callback) => callback({
+            data: {
+                css: 'testCss',
+                structure: {
+                    steps: [{
+                        "route": "0",
+                        "id": "eol0",
+                        "action": {
+                            "type": "closeScenario",
+                            "stepOrdinal": 5,
+                            "onlyOneTip": false,
+                            "watchSelector": false,
+                            "warningTimeout": 3000,
+                            "exposeType": "both",
+                            "fixed": false
+                        },
+                        "followers": [],
+                        "uid": "226-1"
+                    }]
+                },
+                tiplates: {
+                    tip: 'testTip',
+                    hoverTip: 'testHoverTip'
+                }
+            }
+        }));
+
+        const { getSteps } = require("../src/player");
+        document.body.innerHTML =
+            '<div data-iridize-id="content"></div>';
+        getSteps();
+
+        expect((window.jQuery)("div[data-iridize-id='content']").text()).toEqual('You have completed guided learning. Happy Browsing !!');
     });
 });
